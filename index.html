@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>相册首页</title>
+	<meta name="viewport" content="width=device-width, initail-scale=1">
+	<link rel="stylesheet" type="text/css" href="css/normalize.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	
+</head>
+<body>
+<nav >
+	<ul class="albums">
+		<li><i class="icon icon-home2" ></i></li>
+		<li><i class="icon icon-folder-plus" ></i></li>
+		<li><i class="icon icon-upload3" ></i></li>
+		<li><i class="icon icon-bin" >&#xe9ad<strong class="bin-num"></strong></i></li>
+		<li><i class="icon icon-undo" >&#xe965</i></li>
+
+	</ul>
+</nav>
+<section >
+	<ul class="main">
+		<li><span class="icon icon-folder">cat</span><i class="icon icon-wrench">&#xe991</i></li>
+		<li><span class="icon icon-folder">dog</span><i class="icon icon-wrench">&#xe991</i></li>
+		<li><span class="icon icon-folder">pic</span><i class="icon icon-wrench">&#xe991</i></li>
+		<li><span class="icon icon-folder">img</span><i class="icon icon-wrench">&#xe991</i></li>
+		<li><span class="icon icon-folder">flower</span><i class="icon icon-wrench">&#xe991</i></li>
+	</ul>
+	
+</section>
+
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/module.js"></script>
+<script type="text/javascript">
+$(function(){
+
+
+	//删除操作=============================================================
+		var num = 0;
+
+		$(".icon-bin").click(function(event) {
+
+			//存储要删除的列表
+			var arrList = [];
+
+			//先解除li列表的事件
+			$(".main").undelegate('.enter');
+			//删除图标变样
+			$('.icon-bin').css({
+				color: "#fff"
+			});
+			$(".bin-num").html(num);
+			
+			/*改变样式*/
+			$(".main li").addClass('addliststyle');
+
+			// 给文件夹增加一个标记
+			$(".main li").onOff = false;
+			//隐藏重命名图标
+			$(".icon-wrench").css({
+				visibility: 'hidden',
+			});
+
+			//显示取消图标
+			$(".icon-undo").css({
+					"visibility": "visible",					
+			});
+
+
+			//如果点击了某个文件夹列表
+			$(".main li").bind( "click.plugin" ,function(event) {
+
+					//第一次单击时选择
+				if(!$(this).onOff){
+					$(this).onOff = true;
+
+					arrList.push($(this));
+					$(this).css({
+			 		'color': 'blue',
+			 		'list-style-type':'disc'
+			 		});
+			 		num++;
+			 		$(".bin-num").html(num);
+
+				}else{
+					//再次单击取消
+					$(this).onOff = false;
+					$(this).css({
+			 		'color': 'black',
+			 		'list-style-type':'circle'
+			 		});
+			 		num--;
+			 		$(".bin-num").html(num);
+
+				}
+
+
+				
+
+			});
+
+
+			//确认删除
+
+				$(".bin-num").click(function(event) {
+
+					num = 0;
+					$(".bin-num").html(num);
+					for(var i=0;i< arrList.length;i++){
+						arrList[i].remove();
+
+						
+					}
+
+					//取消冒泡
+					return false;
+				});
+
+
+			
+
+			//如果点击了取消
+			$(".icon-undo").click(function(event) {
+
+				//清掉文件夹点击事件
+				$(".main li").unbind(".plugin");
+				$(".main").undelegate(".enter");
+				//恢复原来的事件
+				$(".main").delegate('span','click.enter',enter);
+
+				//清空所有列表的标记
+				$(".main li").onOff = false;
+
+				//恢复原来的样式
+				$('.icon-bin').css({
+					color: "red"
+				});
+				num = 0;
+				$(".bin-num").html("");
+				$(".main li").removeClass('addliststyle');
+				$(".main li").css({
+					'color': 'black',
+					'list-style-type':'circle'
+				});
+
+				$(".icon-wrench").css({
+					visibility: 'visible',
+				});
+
+				
+				//隐藏取消图标
+				$(".icon-undo").css({
+					"visibility": "hidden",					
+				});
+			});
+
+
+			//取消冒泡
+			return false;
+			
+		});
+    //新建文件夹操作*******************************************************************
+    $(".icon-folder-plus").click(function(event){
+
+    	var newName = prompt("新建文件夹","new_folder");
+
+    	//新建文件夹
+    	if(newName){
+    		//检测是否有重名的文件夹
+    		var a = testName(newName);
+
+    		if(a){
+    			//若不重名
+    			$(".main").append('<li><span class="icon icon-folder">'+ newName +'</span><i class="icon icon-wrench">&#xe991</i></li>');
+    			
+    		}else{
+    			//若重名
+    			alert("已有同名文件夹！")
+    		}
+    	
+    	}
+
+    	
+    });
+
+
+    //重命名操作*******************************************************************
+    $(".main").delegate('i','click.re',function(event){
+
+    	
+    	//操作
+    	//获取原文件夹名字
+    	var folderName = $(this).siblings('span').text();
+    	var str = "你要把" + folderName + "修改为： "; 
+    	var newName = prompt(str,"new_folder");
+
+    	//重命名
+    	if(newName){
+    		//检测是否有重名的文件夹
+    		var a = testName(newName);
+
+    		if(a){
+    			//若不重名
+    			$(this).siblings('span').text(newName);
+    			
+    		}else{
+    			//若重名
+    			alert("已有同名文件夹！")
+    		}
+    	
+    	}
+
+
+    	
+    	// 阻止冒泡
+    	return false;
+    });
+
+    //上传操作
+    $(".icon-upload3").click(function(event){
+    	//弹出层
+    	openNew();
+    	//操作
+    });
+
+	//进入文件夹操作*******************************************************************
+	$(".main").delegate('span', 'click.enter', enter);
+
+
+	function testName(name){
+
+		//找出全部原有文件夹名
+    	var aLi = $(".main > li");
+    	var arr =[];
+    	
+    	for(var i=0; i<aLi.length; i++){
+    		arr.push(aLi[i].firstChild.innerHTML);
+    	}
+    	//与name逐一判断
+        var a = arr.every(function(item,index,array){
+        	//如果name跟已有文件名都不相等
+    		return item != name;
+    	});
+
+    	return a;
+
+	}
+})
+
+</script>
+</body>
+</html>
